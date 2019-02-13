@@ -175,13 +175,6 @@ void CheckWifi(){
      WiFi.begin(ssid, password);
 
    #endif
-   
-    WiFi.disconnect(true);
-    #if WPA2EN
-      WiFi.begin(ssid);
-    #else
-      WiFi.begin(ssid, password); 
-     #endif
 
       //  while(WiFi.waitForConnectResult() != WL_CONNECTED){
   while (WiFi.status() != WL_CONNECTED) {       
