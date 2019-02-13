@@ -1,0 +1,3 @@
+[submodule "Arduino_ESP32_SPS30"]
+	path = Arduino_ESP32_SPS30
+	url = https://github.com/jackrobotics/Arduino_ESP32_SPS30
