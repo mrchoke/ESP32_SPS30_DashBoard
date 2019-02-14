@@ -40,16 +40,17 @@ String sname = "SPS30"; // Sensor name
 
 
 // Config Wifi
+#define SSIDNAME "APNAME"
 
 #if WPA2EN
   #include "esp_wpa2.h"
   #include <Wire.h>
   
-  const char* ssid     = "SECUE_AP";
+  const char* ssid     =  SSIDNAME;
   const char* username = "Username";
   const char* password = "Password";
 #else
-  const char* ssid     = "MobileShare";
+  const char* ssid     = SSIDNAME;
   const char* password = "Password";
 #endif
 
