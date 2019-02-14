@@ -3,7 +3,6 @@
  **/
  
 #include <WiFi.h>
-#include <WiFiClientSecure.h>
 #include <WebServer.h>
 
 #include "index.h" // html template
@@ -34,7 +33,6 @@ uint8_t error_cnt = 0;
 
 unsigned long Timer1;
 
-WiFiClientSecure client;
 WebServer server(80);
 
 
