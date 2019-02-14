@@ -5,6 +5,9 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
+// for blink LED
+#include <Ticker.h>
+
 #include "index.h" // html template
 
 // Config here
@@ -35,7 +38,14 @@ uint8_t error_cnt = 0;
 unsigned long Timer1;
 
 WebServer server(80);
+Ticker ticker;
 
+void tick()
+{
+  //toggle state
+  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
+  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+}
 
 // Read CPU Temp
 
@@ -83,9 +93,10 @@ void handleBoardId() {
 void CheckWifi(){
  
  if (WiFi.status() == WL_CONNECTED) {
+    digitalWrite(LED_BUILTIN, HIGH); // LED off
     counter = 0;
   } else if (WiFi.status() != WL_CONNECTED) {
-
+     ticker.attach(0.5, tick); // blink util wifi connected
      #if WPA2EN
 
      esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)username, strlen(username));
@@ -118,11 +129,11 @@ void CheckWifi(){
 void setup() {
   
    Serial.begin(115200);
+   pinMode(LED_BUILTIN, OUTPUT);
    delay(500);
-
- 
+     
   // print out for debug
-  
+
    Serial.println();
    Serial.println();
    Serial.print("Connecting to ");
@@ -137,8 +148,8 @@ void setup() {
   // print out for debug
 
   Serial.print("IP address: ");
- 
-  Serial.println(WiFi.localIP()); 
+  Serial.println(WiFi.localIP());
+  
   // imprement server handle 
   
   server.on("/", handleRoot);
@@ -148,7 +159,7 @@ void setup() {
   // start http server
   
   server.begin();
-  Serial.println("HTTP server started");
+  Serial.println("HTTP server started at: http://" + String(WiFi.localIP()));
 
 }
 
