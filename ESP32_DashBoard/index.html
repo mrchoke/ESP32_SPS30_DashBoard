@@ -28,19 +28,38 @@
                             
                         </div>
                     </div>
-                
+              
+
+                <div class="pure-u-1 pure-u-md-1-3">
+                    <div class="column-block">
+                        <div class="column-block-header column-warning">
+                            <h2>WIFI</h2>
+                            <br/></br>
+                        </div>
+                        <ul class="column-block-list">
+                            <li><span id="label_ssid">Name</span> <span class="buble-success button-small pull-right"><span id="ssid">0</span></span></li>
+                            <li><span id="label_ip">Name</span><span class="buble-success button-small pull-right"><span id="ip">0</span></span></li>
+                            <li><span id="label_mac">Name</span><span class="buble-success button-small pull-right"><span id="mac">0</span></span></li>
+                            <li><span id="label_rssi">Name</span><span class="buble-success button-small pull-right"><span id="rssi">0</span></span></li>
+                            <li><span id="label_channel">Name</span><span class="buble-success button-small pull-right"><span id="channel">0</span></span></li>
+                            
+                        </ul>
+                    </div>
+                </div>
 
                 <div class="pure-u-1 pure-u-md-1-3">
                     <div class="column-block">
                         <div class="column-block-header column-success">
-                            <h2>Talk to ESP</h2>
-                            <span class="column-block-info" id="boardid">Click</span><br/><span><button class="pure-button" onclick="postData('boardid')">Send</button></span></span>
+                            <h2>Get Local Time</h2>
+                            <span class="column-block-info">Click</span><br/><span><button class="pure-button" onclick="postData('localtime')">Show</button></span></span>
                             <br/> <br/>
                         </div>
-                        
+                        <ul class="column-block-list">
+                            <li><span>From Server:</span> <span class="buble-success button-small pull-right"><span id="localtime">0</span></span></li>
+                        </ul>
                     </div>
                 </div>
-            
+                
               </div>
             </div>
                 <div class="footer">
@@ -52,7 +71,7 @@
 
             </div>
         </div>
-</div>
+    </div>
 <script>
    
     getData('info');
@@ -66,7 +85,7 @@
   
       request.open('POST', uri, false);
       request.send('Hi ESP');
-      if(request.response === 'ok') alert('Success!!');
+      if(request.response) alert('Success!!');
       else alert('UnSuccess!!');
       document.getElementById(uri).innerHTML = request.response;
      // console.log(request.response);
@@ -80,7 +99,8 @@
           var jj = JSON.parse(this.responseText);
           for(var i=0;i<jj.length;i++){
             j = jj[i];
-            document.getElementById(j.name).innerHTML = j.val;
+            if( document.getElementById(j.name) !== null) document.getElementById(j.name).innerHTML = j.val;
+            if( document.getElementById('label_'+ j.name) !== null) document.getElementById('label_' + j.name).innerHTML = j.name;
           }
 
         }

@@ -4,11 +4,12 @@
  
 #include <WiFi.h>
 #include <WebServer.h>
+#include "time.h"
+
+#include "index.h" // html template
 
 // for blink LED
 #include <Ticker.h>
-
-#include "index.h" // html template
 
 // Config here
 
@@ -58,22 +59,47 @@ uint8_t temprature_sens_read();
 #endif
 uint8_t temprature_sens_read();
 
+String LocalTime()
+{
+  const char* ntpServer = "clock.nectec.or.th";
+  const long  gmtOffset_sec = 3600 * 7;
+  const int   daylightOffset_sec = 0;
+  struct tm timeinfo;
+  char timeStringBuff[50];
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return "Error";
+  }
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%A, %B %d %Y %H:%M:%S", &timeinfo);
+  // sprintf(tmStr, "%A, %B %d %Y %H:%M:%S", &timeinfo);
+  return String(timeStringBuff);
+}
 
 // Handle URI Functions
 
 void handleRoot() {
  String s = MAIN_page;
+ ticker.attach(0.2, tick);
  server.send(200, "text/html", s);
+ digitalWrite(LED_BUILTIN, HIGH); // LED off
 }
 
 void handleInfo() {
   int temp = ((temprature_sens_read() - 32) / 1.8); // CPU Temp
-   
+  
    // JSON Format
-   
+  
     String data = "[{\"name\":\"temp\",\"val\":\""+ String(temp) +"\"}";
+    data += ",{\"name\":\"ssid\",\"val\":\"" + WiFi.SSID() +"\"}";
+    data += ",{\"name\":\"ip\",\"val\":\"" + (WiFi.localIP()).toString() +"\"}";
+    data += ",{\"name\":\"rssi\",\"val\":\"" + String(WiFi.RSSI())+"\"}";
+    data += ",{\"name\":\"mac\",\"val\":\"" + String(WiFi.macAddress())+"\"}";
+    data += ",{\"name\":\"channel\",\"val\":\"" + String(WiFi.channel())+"\"}";
     data += ",{\"name\":\"nodename\",\"val\":\"" + String(nodename) +"\"}]";
-
+    
     // Print out for debug
     Serial.println("Sent data to Client");
     Serial.println(data);
@@ -81,12 +107,8 @@ void handleInfo() {
     server.send(200, "application/json", data);
 }
 
-void handleBoardId() {
-    uint8_t chipid[6];
-    esp_efuse_read_mac(chipid);
-    Serial.printf("%X\n",chipid);
-    
-  server.send(200, "text/html", "ok");
+void handleLocalTime() {
+  server.send(200, "text/html", LocalTime()  );
 }
 // Check wifi connection and get data from senser and sent to api server
 
@@ -96,7 +118,7 @@ void CheckWifi(){
     digitalWrite(LED_BUILTIN, HIGH); // LED off
     counter = 0;
   } else if (WiFi.status() != WL_CONNECTED) {
-     ticker.attach(0.5, tick); // blink util wifi connected
+
      #if WPA2EN
 
      esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)username, strlen(username));
@@ -111,7 +133,7 @@ void CheckWifi(){
      WiFi.begin(ssid, password);
 
    #endif
-
+  ticker.attach(0.5, tick); // blink util wifi connected
       //  while(WiFi.waitForConnectResult() != WL_CONNECTED){
   while (WiFi.status() != WL_CONNECTED) {       
       delay(500);
@@ -122,18 +144,16 @@ void CheckWifi(){
         ESP.restart();
       }
    }
-
+   digitalWrite(LED_BUILTIN, HIGH); // LED off
   }
 
 }
 void setup() {
-  
    Serial.begin(115200);
    pinMode(LED_BUILTIN, OUTPUT);
    delay(500);
-     
+   
   // print out for debug
-
    Serial.println();
    Serial.println();
    Serial.print("Connecting to ");
@@ -154,12 +174,13 @@ void setup() {
   
   server.on("/", handleRoot);
   server.on("/info", handleInfo);
-  server.on("/boardid", handleBoardId);
+  server.on("/localtime", handleLocalTime);
 
   // start http server
   
   server.begin();
-  Serial.println("HTTP server started at: http://" + String(WiFi.localIP()));
+  Serial.print("HTTP server started at: http://");
+  Serial.println(WiFi.localIP());
 
 }
 
